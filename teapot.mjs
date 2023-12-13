@@ -21,33 +21,27 @@ async function loadTeapotGeometry() {
 		line = line.trim();
 		if (line === '') continue; // empty line
 
-		if (line.startsWith('#')) continue; // comments
+		const [key, ...data] = line.split(' ');
 
-		if (line.startsWith('v ')) {
+		if (key === '#') continue; // comments
+
+		if (key === 'v') {
 			// vertex point
-			const [, x, y, z] = line.split(' ');
-
+			const [x, y, z] = data;
 			vertices.push(parseFloat(x), parseFloat(y), parseFloat(z));
-		}
-
-		if (line.startsWith('vt ')) {
+		} else if (key === 'vt') {
 			// texture - skip for now
 			continue;
 			// const [, u, v] = line.split(' ');
 			// textures.push([parseFloat(u), parseFloat(v)]);
-		}
-
-		if (line.startsWith('vn ')) {
+		} else if (key === 'vn') {
 			// normal - skip for now
 			continue;
 			// const [, x, y, z] = line.split(' ');
 			// normals.push(parseFloat(x), parseFloat(y), parseFloat(z));
-		}
-
-		if (line.startsWith('f ')) {
+		} else if (key === 'f') {
 			// face
-			const [, ...face] = line.split(' ');
-			for (const vertex of face) {
+			for (const vertex of data) {
 				const [vertexIndex, textureIndex, normalIndex] = vertex.split('/');
 				indexes.push(parseInt(vertexIndex) - 1);
 				// textures.push(parseInt(textureIndex) - 1);
@@ -56,7 +50,8 @@ async function loadTeapotGeometry() {
 		}
 	}
 
-	console.log({ indexes, vertices, normals, textures });
+	console.log({ indexes, vertices });
+	console.log({ maxIdx: Math.max(...indexes), mxVertex: vertices.length / 3 - 1 });
 
 	// Return indices and vertices of the teapot
 	// TODO: Right now this returns a triangle
