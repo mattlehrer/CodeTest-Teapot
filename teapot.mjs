@@ -11,7 +11,7 @@ async function loadTeapotGeometry() {
 	const teapotText = await teapotResponse.text();
 
 	const indexes = [];
-	const vertices = [];
+	const vertices = [0, 0, 0];
 	// const normals = [];
 	// const textures = [];
 
@@ -19,10 +19,9 @@ async function loadTeapotGeometry() {
 	for (let line of teapotText.split('\n')) {
 		// TODO: Parse the glb line by line
 		line = line.trim();
-		console.log({ line });
 		if (line === '') continue; // empty line
 
-		const [key, ...data] = line.split(' ');
+		const [key, ...data] = line.split(/\s+/);
 
 		if (key === '#') continue; // comments
 
@@ -30,7 +29,6 @@ async function loadTeapotGeometry() {
 			// vertex point
 			const [x, y, z] = data;
 			vertices.push(parseFloat(x), parseFloat(y), parseFloat(z));
-			console.log({ vertices });
 		} else if (key === 'vt') {
 			// texture - skip for now
 			continue;
@@ -45,11 +43,26 @@ async function loadTeapotGeometry() {
 			// face
 			for (const vertex of data) {
 				const [vertexIndex, textureIndex, normalIndex] = vertex.split('/');
-				indexes.push(parseInt(vertexIndex) - 1);
+				indexes.push(parseInt(vertexIndex));
 				console.log({ indexes });
 				// textures.push(parseInt(textureIndex) - 1);
 				// normals.push(parseInt(normalIndex) - 1);
 			}
+			// for (let i = 0; i < data.length - 2; i++) {
+			// 	const [vIndexA, textureIndexA, normalIndexA] = data[i].split('/');
+			// 	const [vIndexB, textureIndexB, normalIndexB] = data[i + 1].split('/');
+			// 	const [vIndexC, textureIndexC, normalIndexC] = data[i + 2].split('/');
+
+			// 	const vertexIndexA = vIndexA < 0 ? vertices.length / 3 + vIndexA : vIndexA;
+			// 	const vertexIndexB = vIndexB < 0 ? vertices.length / 3 + vIndexB : vIndexB;
+			// 	const vertexIndexC = vIndexC < 0 ? vertices.length / 3 + vIndexC : vIndexC;
+
+			// 	console.log({ line, data, i, vIndexA, vIndexB, vIndexC, vertexIndexA, vertexIndexB, vertexIndexC });
+
+			// 	indexes.push(parseInt(vertexIndexA));
+			// 	indexes.push(parseInt(vertexIndexB));
+			// 	indexes.push(parseInt(vertexIndexC));
+			// }
 		}
 	}
 
