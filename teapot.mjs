@@ -7,7 +7,7 @@
  */
 async function loadTeapotGeometry() {
 	// Fetch the teapot obj file
-	const teapotResponse = await fetch('/teapot.obj');
+	const teapotResponse = await fetch('/triangle.obj');
 	const teapotText = await teapotResponse.text();
 
 	const indexes = [];
@@ -19,6 +19,7 @@ async function loadTeapotGeometry() {
 	for (let line of teapotText.split('\n')) {
 		// TODO: Parse the glb line by line
 		line = line.trim();
+		console.log({ line });
 		if (line === '') continue; // empty line
 
 		const [key, ...data] = line.split(' ');
@@ -29,6 +30,7 @@ async function loadTeapotGeometry() {
 			// vertex point
 			const [x, y, z] = data;
 			vertices.push(parseFloat(x), parseFloat(y), parseFloat(z));
+			console.log({ vertices });
 		} else if (key === 'vt') {
 			// texture - skip for now
 			continue;
@@ -44,6 +46,7 @@ async function loadTeapotGeometry() {
 			for (const vertex of data) {
 				const [vertexIndex, textureIndex, normalIndex] = vertex.split('/');
 				indexes.push(parseInt(vertexIndex) - 1);
+				console.log({ indexes });
 				// textures.push(parseInt(textureIndex) - 1);
 				// normals.push(parseInt(normalIndex) - 1);
 			}
