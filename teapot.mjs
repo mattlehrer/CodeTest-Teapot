@@ -7,11 +7,11 @@
  */
 async function loadTeapotGeometry() {
 	// Fetch the teapot obj file
-	const teapotResponse = await fetch('/triangle.obj');
+	const teapotResponse = await fetch('/teapot.obj');
 	const teapotText = await teapotResponse.text();
 
 	const indexes = [];
-	const vertices = [0, 0, 0];
+	const vertices = [];
 	// const normals = [];
 	// const textures = [];
 
@@ -40,34 +40,35 @@ async function loadTeapotGeometry() {
 			// const [, x, y, z] = line.split(' ');
 			// normals.push(parseFloat(x), parseFloat(y), parseFloat(z));
 		} else if (key === 'f') {
+			console.log({ data });
 			// face
-			// for (const vertex of data) {
-			// 	const [vertexIndex, textureIndex, normalIndex] = vertex.split('/');
-			// 	indexes.push(parseInt(vertexIndex));
-			// 	console.log({ indexes });
-			// 	// textures.push(parseInt(textureIndex) - 1);
-			// 	// normals.push(parseInt(normalIndex) - 1);
-			// }
-			for (let i = 0; i < data.length - 2; i++) {
-				const [vIndexA, textureIndexA, normalIndexA] = data[i].split('/');
-				const [vIndexB, textureIndexB, normalIndexB] = data[i + 1].split('/');
-				const [vIndexC, textureIndexC, normalIndexC] = data[i + 2].split('/');
-
-				const vertexIndexA = vIndexA < 0 ? vertices.length / 3 + vIndexA : vIndexA;
-				const vertexIndexB = vIndexB < 0 ? vertices.length / 3 + vIndexB : vIndexB;
-				const vertexIndexC = vIndexC < 0 ? vertices.length / 3 + vIndexC : vIndexC;
-
-				console.log({ line, data, i, vIndexA, vIndexB, vIndexC, vertexIndexA, vertexIndexB, vertexIndexC });
-
-				indexes.push(parseInt(vertexIndexA));
-				indexes.push(parseInt(vertexIndexB));
-				indexes.push(parseInt(vertexIndexC));
+			for (const vertex of data) {
+				const [vertexIndex, textureIndex, normalIndex] = vertex.split('/');
+				indexes.push(parseInt(vertexIndex) - 1);
+				console.log({ indexes });
+				// textures.push(parseInt(textureIndex) - 1);
+				// normals.push(parseInt(normalIndex) - 1);
 			}
+			// for (let i = 0; i < data.length - 2; i++) {
+			// 	const [vIndexA, textureIndexA, normalIndexA] = data[i].split('/');
+			// 	const [vIndexB, textureIndexB, normalIndexB] = data[i + 1].split('/');
+			// 	const [vIndexC, textureIndexC, normalIndexC] = data[i + 2].split('/');
+
+			// 	const vertexIndexA = vIndexA < 0 ? vertices.length / 3 + vIndexA : vIndexA;
+			// 	const vertexIndexB = vIndexB < 0 ? vertices.length / 3 + vIndexB : vIndexB;
+			// 	const vertexIndexC = vIndexC < 0 ? vertices.length / 3 + vIndexC : vIndexC;
+
+			// 	// console.log({ line, data, i, vIndexA, vIndexB, vIndexC, vertexIndexA, vertexIndexB, vertexIndexC });
+
+			// 	indexes.push(parseInt(vertexIndexA));
+			// 	indexes.push(parseInt(vertexIndexB));
+			// 	indexes.push(parseInt(vertexIndexC));
+			// }
 		}
 	}
 
 	console.log({ indexes, vertices });
-	console.log({ maxIdx: Math.max(...indexes), mxVertex: vertices.length / 3 - 1 });
+	// console.log({ maxIdx: Math.max(...indexes), mxVertex: vertices.length / 3 - 1 });
 
 	// Return indices and vertices of the teapot
 	// TODO: Right now this returns a triangle
@@ -180,7 +181,7 @@ async function renderTeapot() {
 		);
 
 		// Render the teapot
-		context.drawElements(context.TRIANGLES, 3, context.UNSIGNED_SHORT, 0);
+		context.drawElements(context.TRIANGLES, teapotGeometry.indexes.length, context.UNSIGNED_SHORT, 0);
 		context.flush();
 
 		// Request another frame
