@@ -10,9 +10,21 @@ async function loadTeapotGeometry() {
   const teapotResponse = await fetch("/teapot.obj");
   const teapotText = await teapotResponse.text();
 
+
+	const indexes = new Uint16Array();
+	const vertices = new Float32Array();
+
   // Parse the obj file line by line
   for (const line of teapotText.split("\n")) {
-    // TODO: Parse the glb line by line
+		// TODO: Parse the glb line by line
+
+		if (line.startsWith("#")) continue; // comments
+
+		if (line.startsWith("v ")) { // vertex point
+			const [, x, y, z] = line.split(" ");
+			vertices.push(parseFloat(x), parseFloat(y), parseFloat(z));
+		}
+		
   }
 
   // Return indices and vertices of the teapot
