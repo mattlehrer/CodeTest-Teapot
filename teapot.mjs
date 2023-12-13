@@ -41,28 +41,28 @@ async function loadTeapotGeometry() {
 			// normals.push(parseFloat(x), parseFloat(y), parseFloat(z));
 		} else if (key === 'f') {
 			// face
-			for (const vertex of data) {
-				const [vertexIndex, textureIndex, normalIndex] = vertex.split('/');
-				indexes.push(parseInt(vertexIndex));
-				console.log({ indexes });
-				// textures.push(parseInt(textureIndex) - 1);
-				// normals.push(parseInt(normalIndex) - 1);
-			}
-			// for (let i = 0; i < data.length - 2; i++) {
-			// 	const [vIndexA, textureIndexA, normalIndexA] = data[i].split('/');
-			// 	const [vIndexB, textureIndexB, normalIndexB] = data[i + 1].split('/');
-			// 	const [vIndexC, textureIndexC, normalIndexC] = data[i + 2].split('/');
-
-			// 	const vertexIndexA = vIndexA < 0 ? vertices.length / 3 + vIndexA : vIndexA;
-			// 	const vertexIndexB = vIndexB < 0 ? vertices.length / 3 + vIndexB : vIndexB;
-			// 	const vertexIndexC = vIndexC < 0 ? vertices.length / 3 + vIndexC : vIndexC;
-
-			// 	console.log({ line, data, i, vIndexA, vIndexB, vIndexC, vertexIndexA, vertexIndexB, vertexIndexC });
-
-			// 	indexes.push(parseInt(vertexIndexA));
-			// 	indexes.push(parseInt(vertexIndexB));
-			// 	indexes.push(parseInt(vertexIndexC));
+			// for (const vertex of data) {
+			// 	const [vertexIndex, textureIndex, normalIndex] = vertex.split('/');
+			// 	indexes.push(parseInt(vertexIndex));
+			// 	console.log({ indexes });
+			// 	// textures.push(parseInt(textureIndex) - 1);
+			// 	// normals.push(parseInt(normalIndex) - 1);
 			// }
+			for (let i = 0; i < data.length - 2; i++) {
+				const [vIndexA, textureIndexA, normalIndexA] = data[i].split('/');
+				const [vIndexB, textureIndexB, normalIndexB] = data[i + 1].split('/');
+				const [vIndexC, textureIndexC, normalIndexC] = data[i + 2].split('/');
+
+				const vertexIndexA = vIndexA < 0 ? vertices.length / 3 + vIndexA : vIndexA;
+				const vertexIndexB = vIndexB < 0 ? vertices.length / 3 + vIndexB : vIndexB;
+				const vertexIndexC = vIndexC < 0 ? vertices.length / 3 + vIndexC : vIndexC;
+
+				console.log({ line, data, i, vIndexA, vIndexB, vIndexC, vertexIndexA, vertexIndexB, vertexIndexC });
+
+				indexes.push(parseInt(vertexIndexA));
+				indexes.push(parseInt(vertexIndexB));
+				indexes.push(parseInt(vertexIndexC));
+			}
 		}
 	}
 
