@@ -6,26 +6,57 @@
  * @returns {Promise<{indexes: Uint16Array, vertices: Float32Array}>}
  */
 async function loadTeapotGeometry() {
-  // Fetch the teapot obj file
-  const teapotResponse = await fetch("/teapot.obj");
-  const teapotText = await teapotResponse.text();
+	// Fetch the teapot obj file
+	const teapotResponse = await fetch('/teapot.obj');
+	const teapotText = await teapotResponse.text();
 
+	const indexes = [];
+	const vertices = [];
+	// const normals = [];
+	// const textures = [];
 
-	const indexes = new Uint16Array();
-	const vertices = new Float32Array();
-
-  // Parse the obj file line by line
-  for (const line of teapotText.split("\n")) {
+	// Parse the obj file line by line
+	for (let line of teapotText.split('\n')) {
 		// TODO: Parse the glb line by line
+		line = line.trim();
+		if (line === '') continue; // empty line
 
-		if (line.startsWith("#")) continue; // comments
+		if (line.startsWith('#')) continue; // comments
 
-		if (line.startsWith("v ")) { // vertex point
-			const [, x, y, z] = line.split(" ");
+		if (line.startsWith('v ')) {
+			// vertex point
+			const [, x, y, z] = line.split(' ');
+
 			vertices.push(parseFloat(x), parseFloat(y), parseFloat(z));
 		}
-		
-  }
+
+		if (line.startsWith('vt ')) {
+			// texture - skip for now
+			continue;
+			// const [, u, v] = line.split(' ');
+			// textures.push([parseFloat(u), parseFloat(v)]);
+		}
+
+		if (line.startsWith('vn ')) {
+			// normal - skip for now
+			continue;
+			// const [, x, y, z] = line.split(' ');
+			// normals.push(parseFloat(x), parseFloat(y), parseFloat(z));
+		}
+
+		if (line.startsWith('f ')) {
+			// face
+			const [, ...face] = line.split(' ');
+			for (const vertex of face) {
+				const [vertexIndex, textureIndex, normalIndex] = vertex.split('/');
+				indexes.push(parseInt(vertexIndex) - 1);
+				// textures.push(parseInt(textureIndex) - 1);
+				// normals.push(parseInt(normalIndex) - 1);
+			}
+		}
+	}
+
+	console.log({ indexes, vertices, normals, textures });
 
 	// Return indices and vertices of the teapot
 	// TODO: Right now this returns a triangle
