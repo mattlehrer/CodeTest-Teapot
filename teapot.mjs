@@ -7,12 +7,12 @@
  */
 async function loadTeapotGeometry() {
 	// Fetch the teapot obj file
-	const teapotResponse = await fetch('/triangle.obj');
+	const teapotResponse = await fetch('/teapot.obj');
 	const teapotText = await teapotResponse.text();
 
 	const indexes = [];
 	const vertices = [];
-	// const normals = [];
+	const normals = [];
 	// const textures = [];
 
 	// Parse the obj file line by line
@@ -29,51 +29,48 @@ async function loadTeapotGeometry() {
 			// vertex point
 			const [x, y, z] = data;
 			vertices.push(parseFloat(x), parseFloat(y), parseFloat(z));
-		} else if (key === 'vt') {
-			// texture - skip for now
-			continue;
-			// const [, u, v] = line.split(' ');
-			// textures.push([parseFloat(u), parseFloat(v)]);
+			// } else if (key === 'vt') {
+			// 	// texture - skip for now
+			// 	continue;
+			// 	// const [, u, v] = line.split(' ');
+			// 	// textures.push([parseFloat(u), parseFloat(v)]);
 		} else if (key === 'vn') {
-			// normal - skip for now
-			continue;
-			// const [, x, y, z] = line.split(' ');
-			// normals.push(parseFloat(x), parseFloat(y), parseFloat(z));
+			// normal
+			const [x, y, z] = data;
+			normals.push(parseFloat(x), parseFloat(y), parseFloat(z));
 		} else if (key === 'f') {
-			console.log({ data });
 			// face
-			// for (const vertex of data) {
-			// 	const [vertexIndex, textureIndex, normalIndex] = vertex.split('/');
-			// 	indexes.push(parseInt(vertexIndex) - 1);
-			// 	// textures.push(parseInt(textureIndex) - 1);
-			// 	// normals.push(parseInt(normalIndex) - 1);
-			// }
-			for (let i = 0; i < data.length - 2; i++) {
-				const [vIndexA, textureIndexA, normalIndexA] = data[i].split('/');
-				const [vIndexB, textureIndexB, normalIndexB] = data[i + 1].split('/');
-				const [vIndexC, textureIndexC, normalIndexC] = data[i + 2].split('/');
-
-				const vertexIndexA = vIndexA < 0 ? vertices.length / 3 + vIndexA : vIndexA;
-				const vertexIndexB = vIndexB < 0 ? vertices.length / 3 + vIndexB : vIndexB;
-				const vertexIndexC = vIndexC < 0 ? vertices.length / 3 + vIndexC : vIndexC;
-
-				// console.log({ line, data, i, vIndexA, vIndexB, vIndexC, vertexIndexA, vertexIndexB, vertexIndexC });
-
-				indexes.push(parseInt(vertexIndexA) - 1);
-				indexes.push(parseInt(vertexIndexB) - 1);
-				indexes.push(parseInt(vertexIndexC) - 1);
+			for (const vertex of data) {
+				const [vertexIndex, textureIndex, normalIndex] = vertex.split('/').map(parseInt);
+				const idx = vertexIndex + (vertexIndex >= 0 ? 0 : vertices.length) - 1;
+				indexes.push(idx);
+				// textures.push(parseInt(textureIndex) - 1);
+				// normals.push(parseInt(normalIndex) - 1);
 			}
+			// for (let i = 0; i < data.length - 2; i++) {
+			// 	const [vIndexA, textureIndexA, normalIndexA] = data[i].split('/');
+			// 	const [vIndexB, textureIndexB, normalIndexB] = data[i + 1].split('/');
+			// 	const [vIndexC, textureIndexC, normalIndexC] = data[i + 2].split('/');
+
+			// 	const vertexIndexA = vIndexA < 0 ? vertices.length / 3 + vIndexA : vIndexA;
+			// 	const vertexIndexB = vIndexB < 0 ? vertices.length / 3 + vIndexB : vIndexB;
+			// 	const vertexIndexC = vIndexC < 0 ? vertices.length / 3 + vIndexC : vIndexC;
+
+			// 	// console.log({ line, data, i, vIndexA, vIndexB, vIndexC, vertexIndexA, vertexIndexB, vertexIndexC });
+
+			// 	indexes.push(parseInt(vertexIndexA) - 1);
+			// 	indexes.push(parseInt(vertexIndexB) - 1);
+			// 	indexes.push(parseInt(vertexIndexC) - 1);
+			// }
 		}
 	}
 
-	console.log({ indexes, vertices });
-	// console.log({ maxIdx: Math.max(...indexes), mxVertex: vertices.length / 3 - 1 });
+	console.log({ indexes, vertices, normals });
 
-	// Return indices and vertices of the teapot
-	// TODO: Right now this returns a triangle
 	return {
 		indexes: new Uint16Array(indexes),
 		vertices: new Float32Array(vertices),
+		normals: new Float32Array(normals),
 		// indexes: new Uint16Array([0, 1, 2]),
 		// vertices: new Float32Array([-1, -1, 0, 0, 1, 0, 1, -1, 0]),
 	};
@@ -91,11 +88,12 @@ function setupShaderProgram(context) {
 	context.shaderSource(
 		vertexShader,
 		`
-    attribute vec3 position;
-    uniform mat4 modelViewMatrix;
-    void main() {
-      gl_Position = modelViewMatrix * vec4(position, 1);
-    }
+		attribute vec3 position;
+		uniform mat4 modelViewMatrix;
+		uniform mat4 projectionMatrix;
+		void main() {
+			gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1);
+		}
   `,
 	);
 	context.shaderSource(
@@ -139,6 +137,13 @@ async function renderTeapot() {
 	context.bindBuffer(context.ARRAY_BUFFER, position);
 	context.bufferData(context.ARRAY_BUFFER, teapotGeometry.vertices, context.STATIC_DRAW);
 
+	// Bind vertices to ARRAY_BUFFER
+	// const normal = context.createBuffer();
+	// context.bindBuffer(context.ARRAY_BUFFER, normal);
+	// context.bufferData(context.ARRAY_BUFFER, teapotGeometry.normals, context.STATIC_DRAW);
+
+	// ... Set up matrices, uniforms, and draw elements ...
+
 	// Use the red shader program
 	const program = setupShaderProgram(context);
 	context.useProgram(program);
@@ -148,6 +153,16 @@ async function renderTeapot() {
 	context.enableVertexAttribArray(positionLocation);
 	context.vertexAttribPointer(positionLocation, 3, context.FLOAT, false, 0, 0);
 
+	// Enable vertex position attribute
+	// const positionAttribLocation = context.getAttribLocation(program, 'aVertexPosition');
+	// context.enableVertexAttribArray(positionAttribLocation);
+	// context.vertexAttribPointer(positionAttribLocation, 3, context.FLOAT, false, 0, 0);
+
+	// // Enable vertex normal attribute
+	// const normalAttribLocation = context.getAttribLocation(program, 'aVertexNormal');
+	// context.enableVertexAttribArray(normalAttribLocation);
+	// context.vertexAttribPointer(normalAttribLocation, 3, context.FLOAT, false, 0, 0);
+
 	let firstFrame = performance.now();
 
 	const renderLoop = () => {
@@ -155,6 +170,13 @@ async function renderTeapot() {
 
 		// Set a rotating model view matrix
 		const modelViewMatrixLocation = context.getUniformLocation(program, 'modelViewMatrix');
+		const fieldOfViewInRadians = Math.PI * 0.9;
+		const aspect = 1;
+		const near = 1;
+		const far = 10;
+		const projectionMatrix = createPerspectiveMatrix(fieldOfViewInRadians, aspect, near, far);
+		const projectionMatrixLocation = context.getUniformLocation(program, 'projectionMatrix');
+		context.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
 		const rotation = ((delta % 10000) / 10000) * Math.PI * 2;
 		context.uniformMatrix4fv(
 			modelViewMatrixLocation,
@@ -192,3 +214,26 @@ async function renderTeapot() {
 }
 
 renderTeapot();
+
+function createPerspectiveMatrix(fieldOfViewInRadians, aspect, near, far) {
+	var f = 1.0 / Math.tan(fieldOfViewInRadians / 2);
+	var rangeInv = 1 / (near - far);
+	return new Float32Array([
+		f / aspect,
+		0,
+		0,
+		0,
+		0,
+		f,
+		0,
+		0,
+		0,
+		0,
+		(near + far) * rangeInv,
+		-1,
+		0,
+		0,
+		near * far * rangeInv * 2,
+		0,
+	]);
+}
